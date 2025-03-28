@@ -8,7 +8,8 @@ const MainContainter = () => {
     minInvestAmount: "All",
     voltalityType: null,
     investmentStrategySet: new Set(),
-    sortByType:"Popularity",
+    sortByType: "Popularity",
+    orderBy:"High-Low"
   });
 
   let investmentStrategyListAsMap = getListOfInvestmentStrategy(smallCasesData);
@@ -25,7 +26,6 @@ const MainContainter = () => {
     }
     fetchData();
   }, []);
-
 
   function handleSubscriptionType(subscriptionType) {
     setStatus({
@@ -44,15 +44,16 @@ const MainContainter = () => {
   function handleVoltality(voltalityType) {
     setStatus({
       ...status,
-      voltalityType: status.voltalityType==voltalityType ? null : voltalityType,
+      voltalityType:
+        status.voltalityType == voltalityType ? null : voltalityType,
     });
   }
 
-  function handleSortByFilter(type){
+  function handleSortByFilter(type) {
     setStatus({
       ...status,
-      sortByType:type,
-    })
+      sortByType: type,
+    });
   }
 
   function handleInvestmentStrategy(type) {
@@ -69,6 +70,16 @@ const MainContainter = () => {
     // console.log(set);
   }
 
+  function handleOrderBy(orderBy){
+    setStatus({
+      ...status,
+      orderBy:orderBy,
+    })
+    console.log(status.orderBy);
+    
+
+  }
+
   let filteredSmallCasesData = getFilteredSmallCasesData(
     status,
     smallCasesData
@@ -78,7 +89,7 @@ const MainContainter = () => {
     <>
       <div>{filteredSmallCasesData.length}</div>
 
-      <NavBar  handleSortByFilter={handleSortByFilter} status={status}/>
+      <NavBar handleSortByFilter={handleSortByFilter} status={status}  handleOrderBy={handleOrderBy}/>
 
       <div className="flex justify-center gap-4">
         <aside className=" flex flex-col gap-4 min-w-[300px]  p-4">
@@ -91,11 +102,13 @@ const MainContainter = () => {
             handleInvestmentStrategy={handleInvestmentStrategy}
           />
         </aside>
-        <ul className=" w-[900px]">
-          {filteredSmallCasesData.map((ele, index) => {
-            return <Card ele={ele} key={ele._id} />;
-          })}
-        </ul>
+        <div className="allCards">
+          <ul className=" w-[900px]">
+            {filteredSmallCasesData.map((ele, index) => {
+              return <Card ele={ele} key={ele._id} />;
+            })}
+          </ul>
+        </div>
       </div>
     </>
   );
@@ -158,13 +171,17 @@ function SideBar({
     <>
       {/* Subscription Type */}
       <p className="text-xl font-bold  ">Subscription Type</p>
-      <ul className={`menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box`}>
+      <ul
+        className={`menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box`}
+      >
         {["Show All", "Free Access", "Fee Based"].map((ele) => {
           return (
             <li
               key={ele}
               onClick={() => handleSubscriptionType(ele)}
-              className={`p-2 ${status.subscriptionType==ele ? 'border border-blue-500' : null}`}
+              className={`p-2 ${
+                status.subscriptionType == ele ? "border border-blue-500" : null
+              }`}
             >
               {ele}
             </li>
@@ -201,7 +218,11 @@ function SideBar({
             return (
               <li key={ele}>
                 <button
-                  className={`py-1 px-4 border  ${status.voltalityType==ele ? 'border-2 border-blue-500' : 'border-gray-300'}`}
+                  className={`py-1 px-4 border  ${
+                    status.voltalityType == ele
+                      ? "border-2 border-blue-500"
+                      : "border-gray-300"
+                  }`}
                   onClick={() => handleVoltality(ele)}
                 >
                   {ele}
@@ -222,8 +243,8 @@ function SideBar({
                   type="checkbox"
                   checked={status.investmentStrategySet.has(ele)}
                   onChange={() => handleInvestmentStrategy(ele)}
-                />
-                {" "} {investmentStrategyListAsMap.get(ele)}
+                />{" "}
+                {investmentStrategyListAsMap.get(ele)}
               </li>
             );
           })}
@@ -233,40 +254,71 @@ function SideBar({
   );
 }
 
-function NavBar({handleSortByFilter,status}) {
+function NavBar({ handleSortByFilter, status ,handleOrderBy}) {
   return (
     <div className="dropdown dropdown-start relative w-full flex flex-col justify-center items-center">
-    <div tabIndex={0} role="button" className="btn m-1 bg-white">
-      <span className="text-gray-400 font-light">Sort By  </span> <span>{status.sortByType} </span> 
-    </div>
-    <ul
-      tabIndex={0}
-      className="dropdown-content bg-white rounded-box w-52 p-2 shadow-sm absolute top-full mt-1 z-50"
-    >
-      {["Popularity", "Minimum Amount", "Recently Rebalanced"].map((ele, index) => (
-        <li className="flex flex-row items-center mt-2" key={ele}>
-          <input
-            type="radio"
-            className="radio radio-neutral "
-            name="radio"
-            id={`radio1${index}`}
-            onChange={() => handleSortByFilter(ele)}
-             checked={status.sortByType == ele}
-          />
-          <label htmlFor={`radio1${index}`} className="ml-2">
-            {ele}
-          </label>
+      <div tabIndex={0} role="button" className="btn m-1 bg-white">
+        <span className="text-gray-400 font-light">Sort By </span>{" "}
+        <span>{status.sortByType} </span>
+      </div>
+      <ul
+        tabIndex={0}
+        className="dropdown-content bg-white rounded-box w-fill p-2 shadow-sm absolute top-full mt-1 z-50"
+      >
+        {["Popularity", "Minimum Amount", "Recently Rebalanced"].map(
+          (ele, index) => (
+            <li className="flex flex-row items-center mt-2" key={ele}>
+              <input
+                type="radio"
+                className="radio radio-neutral "
+                name="radio"
+                id={`radio1${index}`}
+                onChange={() => handleSortByFilter(ele)}
+                checked={status.sortByType == ele}
+              />
+              <label htmlFor={`radio1${index}`} className="ml-2">
+                {ele}
+              </label>
+            </li>
+          )
+        )}
+        <li className="mx-2 mr-2 flex flex-col gap-2 mt-2">
+          <span>Returns</span>
+          <span>Time Period</span>
+          <ul className="flex flex-row   rounded border border-gray-300">
+            {["1M", "6M", "1Y","2Y", "3Y", "5M"].map((ele) => {
+              return (
+                <li
+                  key={ele}
+                  className={`px-4 py-1 font-bold text-sm  ${status.sortByType==ele ? 'border text-blue-400 rounded ':'text-gray-400'} `}
+                  onClick={() => handleSortByFilter(ele)}
+                >
+                  {ele}
+                </li>
+              );
+            })}
+           
+          </ul>
         </li>
-      ))}
-       <li>
-        <span>Returns</span>
-        <span>Time Period</span>
-        
-
-       </li>
-    </ul>
+        <li className={`my-4 mx-2`} hidden={isNaN(parseInt(status.sortByType.substring(0, 1)))}>
+  <span>Order By</span>
+  <div className="flex justify-between">
+    {["High-Low", "Low-High"].map((order) => (
+      <button
+        key={order}
+        className={`px-4 py-1 border text-sm flex-1 font-bold rounded ${
+          status.orderBy === order ? 'border text-blue-400' : 'text-gray-400'
+        }`}
+        onClick={() => handleOrderBy(order)}
+      >
+        {order}
+      </button>
+    ))}
   </div>
-  
+</li>
+
+      </ul>
+    </div>
   );
 }
 
@@ -276,7 +328,7 @@ function getFilteredSmallCasesData(status, data) {
   let subscriptionType = status.subscriptionType;
   let minInvestAmount = status.minInvestAmount;
   let investmentStrategy = status.investmentStrategySet;
-  let sortByType=status.sortByType;
+  let sortByType = status.sortByType;
 
   // subscriptionType
   if (subscriptionType == "Free Access") {
@@ -313,7 +365,6 @@ function getFilteredSmallCasesData(status, data) {
   }
 
   if (investmentStrategy && investmentStrategy.size != 0) {
-
     filterdData = filterdData.filter((ele) => {
       let list = ele.info.investmentStrategy;
 
@@ -323,24 +374,36 @@ function getFilteredSmallCasesData(status, data) {
     });
   }
 
-  //sortBY 
+  //sortBY
+  if (sortByType == "Popularity") {
+    filterdData = filterdData.sort((e1, e2) => {
+      return e1.brokerMeta.flags.popular - e2.brokerMeta.flags.popular;
+    });
+  } else if (sortByType == "Minimum Amount") {
+    filterdData = filterdData.sort((e1, e2) => {
+      return e1.stats.minInvestAmount - e2.stats.minInvestAmount;
+    });
+  } else if (sortByType =="Recently Rebalanced") {
+    filterdData = filterdData.sort((e1, e2) => {
+      const date1 = new Date(e1.info.lastRebalanced);
+      const date2 = new Date(e2.info.lastRebalanced);
+      return date2 - date1;
+    });
+  } else {
+  
+    filterdData = filterdData.filter((ele) => {
+      let duration = ele.stats.ratios.cagrDuration.split('MY')[0];
+      return duration == sortByType;
+    });
+     
+      filterdData = filterdData.sort((e1, e2) => {
+        let value1=parseFloat((e1.stats.ratios.cagr * 100))
+        let value2=parseFloat((e2.stats.ratios.cagr * 100))
+        if(status.orderBy=='High-Low') return value2-value1;
+       else return value1-value2;
+      });
 
-  if(sortByType=="Popularity"){
-     filterdData=filterdData.sort((e1,e2)=>{
-     return e1.brokerMeta.flags.popular- e2.brokerMeta.flags.popular;
-     })
   }
-  else if(sortByType=="Minimum Amount"){
-    filterdData=filterdData.sort((e1,e2)=>{
-    return e1.stats.minInvestAmount- e2.stats.minInvestAmount;
-    })
- }
- else{
-     filterdData=[...filterdData];
- }
-
-
-
 
   return filterdData;
 }
