@@ -5,14 +5,18 @@ const MainContainter = () => {
   const [smallCasesData, setSmallCasesData] = useState([]);
   const [status, setStatus] = useState({
     subscriptionType: "Show All",
-    investAmountTpe: "All",
+    minInvestAmount: "All",
     voltalityType: null,
+    investmentStrategySet: new Set(),
+    sortByType:"Popularity",
   });
+
+  let investmentStrategyListAsMap = getListOfInvestmentStrategy(smallCasesData);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        let response = await fetch("public/smallcases.json");
+        let response = await fetch("/smallcases.json");
         let fetchedData = await response.json();
         setSmallCasesData(fetchedData.data);
       } catch (err) {
@@ -22,6 +26,7 @@ const MainContainter = () => {
     fetchData();
   }, []);
 
+
   function handleSubscriptionType(subscriptionType) {
     setStatus({
       ...status,
@@ -29,18 +34,39 @@ const MainContainter = () => {
     });
   }
 
-  function handleInvestmentAmountFilter(investAmountTpe) {
+  function handleInvestmentAmountFilter(minInvestAmount) {
     setStatus({
       ...status,
-      investAmountTpe: investAmountTpe,
+      minInvestAmount: minInvestAmount,
     });
   }
 
   function handleVoltality(voltalityType) {
     setStatus({
       ...status,
-      voltalityType: voltalityType,
+      voltalityType: status.voltalityType==voltalityType ? null : voltalityType,
     });
+  }
+
+  function handleSortByFilter(type){
+    setStatus({
+      ...status,
+      sortByType:type,
+    })
+  }
+
+  function handleInvestmentStrategy(type) {
+    let set = new Set(status.investmentStrategySet);
+    if (set.has(type)) {
+      set.delete(type);
+    } else {
+      set.add(type);
+    }
+    setStatus({
+      ...status,
+      investmentStrategySet: set,
+    });
+    // console.log(set);
   }
 
   let filteredSmallCasesData = getFilteredSmallCasesData(
@@ -50,17 +76,22 @@ const MainContainter = () => {
 
   return (
     <>
-     <div>{filteredSmallCasesData.length}</div>
+      <div>{filteredSmallCasesData.length}</div>
+
+      <NavBar  handleSortByFilter={handleSortByFilter} status={status}/>
+
       <div className="flex justify-center gap-4">
-        <aside className=" flex flex-col gap-2 min-w-[300px] border p-2">
+        <aside className=" flex flex-col gap-4 min-w-[300px]  p-4">
           <SideBar
             handleSubscriptionType={handleSubscriptionType}
             handleInvestmentAmountFilter={handleInvestmentAmountFilter}
             handleVoltality={handleVoltality}
+            investmentStrategyListAsMap={investmentStrategyListAsMap}
+            status={status}
+            handleInvestmentStrategy={handleInvestmentStrategy}
           />
         </aside>
-        <ul>
-         
+        <ul className=" w-[900px]">
           {filteredSmallCasesData.map((ele, index) => {
             return <Card ele={ele} key={ele._id} />;
           })}
@@ -77,9 +108,9 @@ function Card({ ele }) {
     "https://assets.smallcase.com/images/smallcases/160/" + ele.scid + ".png";
 
   return (
-    <div className="flex  border-b border-b-gray-300    w-[900px] gap-4 p-6">
-      <img src={imageLink} alt="" className="h-[80px] flex-1/10" />
-      <div className="info flex-5/10 flex flex-col gap-2">
+    <div className="flex  border-b border-b-gray-300    gap-4 p-4 py-6">
+      <img src={imageLink} alt="" className="h-[70px]  w-[70px] ml-2" />
+      <div className="info flex-4/10 flex flex-col gap-2">
         <header className="text-xl font-bold">
           {heading}
           {!subscriptionTypeIsPrivate && (
@@ -88,15 +119,15 @@ function Card({ ele }) {
             </span>
           )}
         </header>
-        <p className="text-justify">{ele.info.shortDescription}</p>
-        <p className="text-[#8f9399] ">{ele.info.publisherName} </p>
+        <p className="text-sm">{ele.info.shortDescription}</p>
+        <p className="text-[#8f9399] text-sm">{ele.info.publisherName} </p>
       </div>
       <div className="amount flex flex-col justify-center items-center flex-1/10">
         <span className="text-[#8f9399] ">Min.Amount</span>
-        <span>{ele.stats.minInvestAmount}</span>
+        <span>₹{ele.stats.minInvestAmount}</span>
       </div>
       <div className="catagire flex flex-col justify-center items-center flex-1/10 ">
-        <span className="text-[#8f9399] ">
+        <span className="text-[#8f9399] font-light text-sm">
           {ele.stats.ratios.cagrDuration} CAGR
         </span>
         <span className="text-green-500">
@@ -119,35 +150,41 @@ function SideBar({
   handleSubscriptionType,
   handleInvestmentAmountFilter,
   handleVoltality,
+  investmentStrategyListAsMap,
+  handleInvestmentStrategy,
+  status,
 }) {
   return (
     <>
+      {/* Subscription Type */}
       <p className="text-xl font-bold  ">Subscription Type</p>
-      <ul className="menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box">
+      <ul className={`menu menu-vertical lg:menu-horizontal bg-base-200 rounded-box`}>
         {["Show All", "Free Access", "Fee Based"].map((ele) => {
           return (
             <li
               key={ele}
               onClick={() => handleSubscriptionType(ele)}
-              className={`p-2`}
+              className={`p-2 ${status.subscriptionType==ele ? 'border border-blue-500' : null}`}
             >
               {ele}
             </li>
           );
         })}
       </ul>
+      {/* investmentAmount */}
       <div className="investmentAmount">
         <p className=" text-xl font-bold "> Investment Amount</p>
         <ul className="flex flex-col gap-4">
           {["All", "Under ₹ 5000", "Under ₹ 25000", "Under ₹ 50000"].map(
-            (ele) => {
+            (ele, index) => {
               return (
                 <li key={ele}>
                   <input
                     type="radio"
                     name="radio-1"
-                    className="radio"
-                    onClick={() => handleInvestmentAmountFilter(ele)}
+                    className={`radio `}
+                    onChange={() => handleInvestmentAmountFilter(ele)}
+                    checked={status.minInvestAmount == ele}
                   />{" "}
                   <span className="pl-2">{ele}</span>
                 </li>
@@ -156,20 +193,37 @@ function SideBar({
           )}
         </ul>
       </div>
+      {/* Voltality */}
       <div className="Voltality ">
         <p className=" text-xl font-bold ">Voltality</p>
-        <ul className="flex mt-4">
+        <ul className="flex mt-4 gap-0.5">
           {["Low", "Medium", "High"].map((ele) => {
             return (
               <li key={ele}>
                 <button
-                  className={`p-2 border`}
-                  onClick={() => {
-                    handleVoltality(ele);
-                  }}
+                  className={`py-1 px-4 border  ${status.voltalityType==ele ? 'border-2 border-blue-500' : 'border-gray-300'}`}
+                  onClick={() => handleVoltality(ele)}
                 >
                   {ele}
                 </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      <div className="Investment Strategy">
+        <p className=" text-xl font-bold ">Investment Strategy</p>
+        <ul className="flex mt-4 flex-col gap-2">
+          {...investmentStrategyListAsMap.keys().map((ele) => {
+            return (
+              <li key={ele}>
+                <input
+                  type="checkbox"
+                  checked={status.investmentStrategySet.has(ele)}
+                  onChange={() => handleInvestmentStrategy(ele)}
+                />
+                {" "} {investmentStrategyListAsMap.get(ele)}
               </li>
             );
           })}
@@ -179,13 +233,52 @@ function SideBar({
   );
 }
 
-function getFilteredSmallCasesData(status,data) {
+function NavBar({handleSortByFilter,status}) {
+  return (
+    <div className="dropdown dropdown-start relative w-full flex flex-col justify-center items-center">
+    <div tabIndex={0} role="button" className="btn m-1 bg-white">
+      <span className="text-gray-400 font-light">Sort By  </span> <span>{status.sortByType} </span> 
+    </div>
+    <ul
+      tabIndex={0}
+      className="dropdown-content bg-white rounded-box w-52 p-2 shadow-sm absolute top-full mt-1 z-50"
+    >
+      {["Popularity", "Minimum Amount", "Recently Rebalanced"].map((ele, index) => (
+        <li className="flex flex-row items-center mt-2" key={ele}>
+          <input
+            type="radio"
+            className="radio radio-neutral "
+            name="radio"
+            id={`radio1${index}`}
+            onChange={() => handleSortByFilter(ele)}
+             checked={status.sortByType == ele}
+          />
+          <label htmlFor={`radio1${index}`} className="ml-2">
+            {ele}
+          </label>
+        </li>
+      ))}
+       <li>
+        <span>Returns</span>
+        <span>Time Period</span>
+        
+
+       </li>
+    </ul>
+  </div>
+  
+  );
+}
+
+function getFilteredSmallCasesData(status, data) {
   let filterdData = [];
-  let voltalityType=status.voltalityType;
-  let subscriptionType=status.subscriptionType;
-  let investAmountTpe=status.investAmountTpe;
+  let voltalityType = status.voltalityType;
+  let subscriptionType = status.subscriptionType;
+  let minInvestAmount = status.minInvestAmount;
+  let investmentStrategy = status.investmentStrategySet;
+  let sortByType=status.sortByType;
 
-
+  // subscriptionType
   if (subscriptionType == "Free Access") {
     filterdData = data.filter((ele) => {
       let subscriptionTypeIsPrivate = ele.flags.private;
@@ -197,55 +290,72 @@ function getFilteredSmallCasesData(status,data) {
       return subscriptionTypeIsPrivate;
     });
   } else if (subscriptionType == "Show All") {
-    filterdData = data.map((ele) => ele);
+    filterdData = [...data];
   }
 
-
-  if (investAmountTpe == "Under ₹ 5000") {
+  // minInvestAmount
+  if (minInvestAmount == "All") {
+    filterdData = [...filterdData];
+  } else {
+    let amount = parseInt(minInvestAmount.split("₹").slice(-1)[0].trim());
     filterdData = filterdData.filter((ele) => {
       let minInvestAmount = parseFloat(ele.stats.minInvestAmount);
-      return minInvestAmount <= 5000;
+      return minInvestAmount <= amount;
     });
-  } else if (investAmountTpe == "Under ₹ 25000") {
-    filterdData = filterdData.filter((ele) => {
-      let minInvestAmount = parseFloat(ele.stats.minInvestAmount);
-      return minInvestAmount <= 25000;
-    });
-  } else if (investAmountTpe == "Under ₹ 50000") {
-    filterdData = filterdData.filter((ele) => {
-      let minInvestAmount = parseFloat(ele.stats.minInvestAmount);
-      return minInvestAmount <= 50000;
-    });
-  } else if (investAmountTpe == "All") {
-    filterdData = filterdData.map((ele) => ele);
   }
 
-  
-  if(voltalityType=='Low'){
+  // voltalityType
+  if (voltalityType) {
     filterdData = filterdData.filter((ele) => {
       let volatility = ele.stats.ratios.riskLabel;
-      return volatility =='Low Volatility';
+      return volatility == voltalityType + " Volatility";
     });
-
   }
-  else   if(voltalityType=='Medium'){
+
+  if (investmentStrategy && investmentStrategy.size != 0) {
+
     filterdData = filterdData.filter((ele) => {
-      let volatility = ele.stats.ratios.riskLabel;
-      return volatility =='Medium Volatility';
-    });
+      let list = ele.info.investmentStrategy;
 
-  }
-  else   if(voltalityType=='High'){
-    filterdData = filterdData.filter((ele) => {
-      let volatility = ele.stats.ratios.riskLabel;
-      return volatility =='High Volatility';
+      return [...investmentStrategy].some((strategy) =>
+        list.some((item) => item.key === strategy)
+      );
     });
-
   }
+
+  //sortBY 
+
+  if(sortByType=="Popularity"){
+     filterdData=filterdData.sort((e1,e2)=>{
+     return e1.brokerMeta.flags.popular- e2.brokerMeta.flags.popular;
+     })
+  }
+  else if(sortByType=="Minimum Amount"){
+    filterdData=filterdData.sort((e1,e2)=>{
+    return e1.stats.minInvestAmount- e2.stats.minInvestAmount;
+    })
+ }
+ else{
+     filterdData=[...filterdData];
+ }
+
 
 
 
   return filterdData;
 }
 
+function getListOfInvestmentStrategy(smallcaseData) {
+  let map = new Map();
+
+  smallcaseData.forEach((ele) => {
+    let investmentStrategy = ele.info.investmentStrategy;
+
+    investmentStrategy.forEach((strategy) => {
+      map.set(strategy.key, strategy.displayName);
+    });
+  });
+
+  return map;
+}
 export default MainContainter;
