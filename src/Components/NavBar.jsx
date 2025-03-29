@@ -1,7 +1,9 @@
 import React from 'react'
 
-function NavBar({ handleSortByFilter, status ,handleOrderBy}) {
-    return (
+function NavBar({ handleSortByFilter, status ,handleOrderBy,children}) {
+    return (<div className='flex gap-8 border'>
+   
+        {children}
       <div className="dropdown dropdown-start relative w-full flex flex-col justify-center items-center">
         <div tabIndex={0} role="button" className="btn m-1 bg-white">
           <span className="text-gray-400 font-light">Sort By </span>{" "}
@@ -64,6 +66,7 @@ function NavBar({ handleSortByFilter, status ,handleOrderBy}) {
   </li>
   
         </ul>
+      </div>
       </div>
     );
   }

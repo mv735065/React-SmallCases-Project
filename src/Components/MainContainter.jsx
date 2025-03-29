@@ -14,10 +14,27 @@ const MainContainter = () => {
     orderBy: "High-Low",
   });
 
-  let subscriptionTypeOptions=["Show All", "Free Access", "Fee Based"];
-  let investmentAmountOptions=["All", "Under ₹ 5000", "Under ₹ 25000", "Under ₹ 50000"];
-  let volatilityOptions=["Low", "Medium", "High"];
+  let subscriptionTypeOptions = ["Show All", "Free Access", "Fee Based"];
+  let investmentAmountOptions = [
+    "All",
+    "Under ₹ 5000",
+    "Under ₹ 25000",
+    "Under ₹ 50000",
+  ];
+  let volatilityOptions = ["Low", "Medium", "High"];
   let investmentStrategyListAsMap = getListOfInvestmentStrategy(smallCasesData);
+
+  const sideBarProps = {
+    handleSubscriptionType,
+    handleInvestmentAmountFilter,
+    handleVoltality,
+    investmentStrategyListAsMap,
+    status,
+    handleInvestmentStrategy,
+    subscriptionTypeOptions,
+    investmentAmountOptions,
+    volatilityOptions,
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -93,24 +110,16 @@ const MainContainter = () => {
 
   return (
     <>
-      <div>{filteredSmallCasesData.length}</div>
-
       <NavBar
         handleSortByFilter={handleSortByFilter}
         status={status}
         handleOrderBy={handleOrderBy}
-      />
-
+      >
+        <div className="my-2 ml-4">{filteredSmallCasesData.length}</div>
+      </NavBar>
       <div className="flex justify-center gap-4">
         <aside className=" flex flex-col gap-4 min-w-[300px]  p-4">
-          <SideBar
-            handleSubscriptionType={handleSubscriptionType}
-            handleInvestmentAmountFilter={handleInvestmentAmountFilter}
-            handleVoltality={handleVoltality}
-            investmentStrategyListAsMap={investmentStrategyListAsMap}
-            status={status}
-            handleInvestmentStrategy={handleInvestmentStrategy}
-          />
+          <SideBar {...sideBarProps} />
         </aside>
         <div className="allCards">
           <ul className=" w-[900px]">
@@ -123,90 +132,62 @@ const MainContainter = () => {
     </>
   );
 };
-
 function getFilteredSmallCasesData(status, data) {
-  let filterdData = [];
-  let voltalityTypeSet = status.voltalityType;
-  let subscriptionType = status.subscriptionType;
-  let minInvestAmount = status.minInvestAmount;
-  let investmentStrategy = status.investmentStrategySet;
-  let sortByType = status.sortByType;
+  let { 
+    voltalityType: voltalityTypeSet, 
+    subscriptionType, 
+    minInvestAmount, 
+    investmentStrategySet, 
+    sortByType, 
+    orderBy 
+  } = status;
 
-  // subscriptionType
-  if (subscriptionType == "Free Access") {
-    filterdData = data.filter((ele) => {
-      let subscriptionTypeIsPrivate = ele.flags.private;
-      return !subscriptionTypeIsPrivate;
-    });
-  } else if (subscriptionType == "Fee Based") {
-    filterdData = data.filter((ele) => {
-      let subscriptionTypeIsPrivate = ele.flags.private;
-      return subscriptionTypeIsPrivate;
-    });
-  } else if (subscriptionType == "Show All") {
-    filterdData = [...data];
-  }
+  let filteredData = data.filter(ele => {
+    // Filter by Subscription Type
+    if (subscriptionType === "Free Access" && ele.flags.private) return false;
+    if (subscriptionType === "Fee Based" && !ele.flags.private) return false;
 
-  // minInvestAmount
-  if (minInvestAmount == "All") {
-    filterdData = [...filterdData];
+    // Filter by Minimum Investment Amount
+    if (minInvestAmount !== "All") {
+      let amount = Number(minInvestAmount.replace(/[^0-9]/g, ""));
+      if (ele.stats.minInvestAmount > amount) return false;
+    }
+
+    // Filter by Volatility Type
+    if (voltalityTypeSet?.size && !voltalityTypeSet.has(ele.stats.ratios.riskLabel.split(" ")[0].trim())) {
+      return false;
+    }
+
+    // Filter by Investment Strategy
+    if (investmentStrategySet?.size && 
+        !ele.info.investmentStrategy.some(item => investmentStrategySet.has(item.key))) {
+      return false;
+    }
+
+    return true;
+  });
+
+  // Sorting Logic
+  const sortFunctions = {
+    "Popularity": (a, b) => a.brokerMeta.flags.popular - b.brokerMeta.flags.popular,
+    "Minimum Amount": (a, b) => a.stats.minInvestAmount - b.stats.minInvestAmount,
+    "Recently Rebalanced": (a, b) => new Date(b.info.lastRebalanced) - new Date(a.info.lastRebalanced),
+  };
+
+  if (sortByType in sortFunctions) {
+    filteredData.sort(sortFunctions[sortByType]);
   } else {
-    let amount = parseInt(minInvestAmount.split("₹").slice(-1)[0].trim());
-    filterdData = filterdData.filter((ele) => {
-      let minInvestAmount = parseFloat(ele.stats.minInvestAmount);
-      return minInvestAmount <= amount;
+    // Sorting by CAGR Duration
+    filteredData = filteredData.filter(ele => ele.stats.ratios.cagrDuration.split("MY")[0] === sortByType);
+    
+    filteredData.sort((a, b) => {
+      let valueA = a.stats.ratios.cagr * 100;
+      let valueB = b.stats.ratios.cagr * 100;
+      return orderBy === "High-Low" ? valueB - valueA : valueA - valueB;
     });
   }
 
-  // voltalityType
-  if (voltalityTypeSet && voltalityTypeSet.size!=0) {
-    filterdData = filterdData.filter((ele) => {
-      let volatility = ele.stats.ratios.riskLabel;
-      return voltalityTypeSet.has(volatility.split(" ")[0].trim());
-       
-    });
-  }
-
-  if (investmentStrategy && investmentStrategy.size != 0) {
-    filterdData = filterdData.filter((ele) => {
-      let list = ele.info.investmentStrategy;
-
-      return [...investmentStrategy].some((strategy) =>
-        list.some((item) => item.key === strategy)
-      );
-    });
-  }
-
-  //sortBY
-  if (sortByType == "Popularity") {
-    filterdData = filterdData.sort((e1, e2) => {
-      return e1.brokerMeta.flags.popular - e2.brokerMeta.flags.popular;
-    });
-  } else if (sortByType == "Minimum Amount") {
-    filterdData = filterdData.sort((e1, e2) => {
-      return e1.stats.minInvestAmount - e2.stats.minInvestAmount;
-    });
-  } else if (sortByType == "Recently Rebalanced") {
-    filterdData = filterdData.sort((e1, e2) => {
-      const date1 = new Date(e1.info.lastRebalanced);
-      const date2 = new Date(e2.info.lastRebalanced);
-      return date2 - date1;
-    });
-  } else {
-    filterdData = filterdData.filter((ele) => {
-      let duration = ele.stats.ratios.cagrDuration.split("MY")[0];
-      return duration == sortByType;
-    });
-
-    filterdData = filterdData.sort((e1, e2) => {
-      let value1 = parseFloat(e1.stats.ratios.cagr * 100);
-      let value2 = parseFloat(e2.stats.ratios.cagr * 100);
-      if (status.orderBy == "High-Low") return value2 - value1;
-      else return value1 - value2;
-    });
-  }
-
-  return filterdData;
+  return filteredData;
 }
 
 function getListOfInvestmentStrategy(smallcaseData) {
