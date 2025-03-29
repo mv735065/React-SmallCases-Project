@@ -39,9 +39,9 @@ function Card({ ele ,status,sortByOptions,sortByTimePeriodOptions}) {
         className={` text-sm font-medium  flex justify-center items-center flex-2/10 `}
       >
         <span className=" border border-gray-300 px-2 py-1 rounded-md flex flex-row items-center">
-          {label.split(" ")[0].trim()=='Low' && <img src="src/assets/1.png"/>}
-          {label.split(" ")[0].trim()=='Medium' && <img src="src/assets/2.png"/>}
-          {label.split(" ")[0].trim()=='High' && <img src="src/assets/3.png"/>}
+          {label.split(" ")[0].trim()=='Low' && <img src="/Images/1.png" />}
+          {label.split(" ")[0].trim()=='Medium' && <img src="/Images/2.png"/>}
+          {label.split(" ")[0].trim()=='High' && <img src="/Images/3.png"/>}
 
           {label.split(" ")[0].trim()=='Medium' ? 'Med. Volatility' : label}
         </span>

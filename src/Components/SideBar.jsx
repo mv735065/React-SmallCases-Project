@@ -76,9 +76,9 @@ function SideBar(props) {
                   onClick={() => handleVoltality(ele)}
                 >
                   <span>{ele}</span>
-                  {ele.split(" ")[0].trim()=='Low' && <img src="src/assets/1.png"/>}
-          {ele.split(" ")[0].trim()=='Medium' && <img src="src/assets/2.png" className="w-fit"/>}
-          {ele.split(" ")[0].trim()=='High' && <img src="src/assets/3.png"/>}
+                  {ele.split(" ")[0].trim()=='Low' && <img src="/Images/1.png"  />}
+          {ele.split(" ")[0].trim()=='Medium' && <img src="/Images/2.png" className="w-fit"/>}
+          {ele.split(" ")[0].trim()=='High' && <img src="/Images/3.png"/>}
                 </button>
               </li>
             );
