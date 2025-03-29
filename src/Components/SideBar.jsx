@@ -12,10 +12,13 @@ function SideBar(props) {
         subscriptionTypeOptions,
         investmentAmountOptions,
         volatilityOptions,
+        handleClearAllFilters
       }=props;
 
   return (
     <>
+       <button className="border-2 border-gray-200 py-1 rounded hover:border-blue-400 " onClick={()=>handleClearAllFilters()}>Clear All Filters</button>
+
       {/* Subscription Type */}
       <p className="text-xl font-bold  ">Subscription Type</p>
       <ul
@@ -66,7 +69,7 @@ function SideBar(props) {
               <li key={ele}>
                 <button
                   className={`py-1 px-4 border-2 rounded ${
-                    status.voltalityType.has(ele)
+                    status.voltalityTypeSet.has(ele)
                       ? " bg-[#e9f0fc] text-[#1f7ae0] font-medium "
                       : "border-gray-200"
                   }`}

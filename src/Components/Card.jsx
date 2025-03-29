@@ -1,13 +1,15 @@
 import React from 'react'
 // e9f0fc bg-light-blue
+import CagReturns from './CagReturns';
 
-function Card({ ele }) {
+function Card({ ele ,status,sortByOptions,sortByTimePeriodOptions}) {
   let subscriptionTypeIsPrivate = ele.flags.private;
   let heading = ele.info.name.substring(0, 20) + "...";
   let imageLink =
     "https://assets.smallcase.com/images/smallcases/160/" + ele.scid + ".png";
 
-    let label=ele.stats.ratios.riskLabel;
+      
+  let cagrProps= {ele ,status,sortByOptions,sortByTimePeriodOptions}
      
 
   return (
@@ -29,15 +31,8 @@ function Card({ ele }) {
         <span className="text-[#8f9399] ">Min.Amount</span>
         <span className='font-medium'>₹{ele.stats.minInvestAmount}</span>
       </div>
-      <div className="catagire flex flex-col justify-center items-center flex-1/10 ">
-        <span className="text-[#8f9399]  text-sm font-medium">
-          {ele.stats.ratios.cagrDuration} CAGR
-        </span>
-        <span className="text-green-500 font-medium">
-          {(ele.stats.ratios.cagr * 100).toFixed(2)}%
-        </span>
-      </div>
-
+      <CagReturns {...cagrProps}/>
+      
       <div
         className={` text-sm font-medium  flex justify-center items-center flex-2/10 `}
       >
