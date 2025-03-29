@@ -1,23 +1,28 @@
 import React from "react";
 
 function SideBar(props) {
-
-    const {
-        handleSubscriptionType,
-        handleInvestmentAmountFilter,
-        handleVoltality,
-        investmentStrategyListAsMap,
-        status,
-        handleInvestmentStrategy,
-        subscriptionTypeOptions,
-        investmentAmountOptions,
-        volatilityOptions,
-        handleClearAllFilters
-      }=props;
+  const {
+    handleSubscriptionType,
+    handleInvestmentAmountFilter,
+    handleVoltality,
+    investmentStrategyListAsMap,
+    status,
+    handleInvestmentStrategy,
+    subscriptionTypeOptions,
+    investmentAmountOptions,
+    volatilityOptions,
+    handleClearAllFilters,
+    handleIncludeNewSmallCases
+  } = props;
 
   return (
     <>
-       <button className="border-2 border-gray-200 py-1 rounded hover:border-blue-400 " onClick={()=>handleClearAllFilters()}>Clear All Filters</button>
+      <button
+        className="border-2 border-gray-200 py-1 rounded hover:border-blue-400 "
+        onClick={() => handleClearAllFilters()}
+      >
+        Clear All Filters
+      </button>
 
       {/* Subscription Type */}
       <p className="text-xl font-bold  ">Subscription Type</p>
@@ -76,14 +81,28 @@ function SideBar(props) {
                   onClick={() => handleVoltality(ele)}
                 >
                   <span>{ele}</span>
-                  {ele.split(" ")[0].trim()=='Low' && <img src="/Images/1.png"  />}
-          {ele.split(" ")[0].trim()=='Medium' && <img src="/Images/2.png" className="w-fit"/>}
-          {ele.split(" ")[0].trim()=='High' && <img src="/Images/3.png"/>}
+                  {ele.split(" ")[0].trim() == "Low" && (
+                    <img src="/Images/1.png" />
+                  )}
+                  {ele.split(" ")[0].trim() == "Medium" && (
+                    <img src="/Images/2.png" className="w-fit" />
+                  )}
+                  {ele.split(" ")[0].trim() == "High" && (
+                    <img src="/Images/3.png" />
+                  )}
                 </button>
               </li>
             );
           })}
         </ul>
+      </div>
+
+      <div>
+        <p className=" text-xl font-bold ">Launch Date</p>
+        <input type="checkbox"  checked={status.includeNewSmallCases} onChange={()=>{
+         handleIncludeNewSmallCases();
+          
+        }}/> <span>Recent SmallCases</span>
       </div>
 
       <div className="Investment Strategy">

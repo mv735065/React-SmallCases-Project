@@ -36,6 +36,7 @@ const MainContainter = () => {
     investmentStrategySet: new Set(),
     sortByType: "Popularity",
     orderBy: "High-Low",
+    includeNewSmallCases:false,
   });
 
   let investmentStrategyListAsMap = getListOfInvestmentStrategy(smallCasesData);
@@ -97,6 +98,13 @@ const MainContainter = () => {
     });
   }
 
+  function handleIncludeNewSmallCases(){
+    setStatus({
+      ...status,
+      includeNewSmallCases:!status.includeNewSmallCases,
+    })
+  }
+
   function handleInvestmentStrategy(type) {
     let set = new Set(status.investmentStrategySet);
     if (set.has(type)) {
@@ -133,6 +141,7 @@ const MainContainter = () => {
     volatilityOptions,
     investmentStrategyListAsMap,
     handleClearAllFilters,
+    handleIncludeNewSmallCases
   };
 
   const navBarProps = {
@@ -184,6 +193,7 @@ const MainContainter = () => {
     </>
   );
 };
+
 function getFilteredSmallCasesData(status, data) {
   let {
     voltalityTypeSet,
@@ -192,12 +202,23 @@ function getFilteredSmallCasesData(status, data) {
     investmentStrategySet,
     sortByType,
     orderBy,
+    includeNewSmallCases
   } = status;
 
-  let filteredData = data.filter((ele) => {
+  let filteredData = data.filter((ele,index) => {
     let voltalityType = ele.stats.ratios.riskLabel.split(" ")[0].trim();
     let investmentStrategy = ele.info.investmentStrategy;
     let investAmount = ele.stats.minInvestAmount;
+    // "created": "2023-05-23T00:00:00.000Z",
+    let createdDate=new Date(ele.info.created);
+    let presentDate=new Date();
+    let oneYearAgo = new Date();
+    oneYearAgo.setFullYear(presentDate.getFullYear() - 1);
+    
+    // Check if the created date is older than 1 year
+    if (!includeNewSmallCases && createdDate > oneYearAgo) {
+      return false;
+    }
 
     // Filter by Subscription Type
     if (subscriptionType === "Free Access" && ele.flags.private) return false;
