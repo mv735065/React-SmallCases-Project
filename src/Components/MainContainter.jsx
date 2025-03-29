@@ -15,13 +15,17 @@ let volatilityOptions = ["Low", "Medium", "High"];
 
 let sortByTimePeriodOptions = {
   "1M": "monthly",
-  "6M": "quarterly",
+  "6M": "halfyearly",
   "1Y": "yearly",
   "3Y": "threeYear",
-  "5Y": "fiveYear"
+  "5Y": "fiveYear",
 };
 
-let sortByOptions = new Set(["Popularity", "Minimum Amount", "Recently Rebalanced"]);
+let sortByOptions = new Set([
+  "Popularity",
+  "Minimum Amount",
+  "Recently Rebalanced",
+]);
 
 const MainContainter = () => {
   const [smallCasesData, setSmallCasesData] = useState([]);
@@ -49,15 +53,14 @@ const MainContainter = () => {
     fetchData();
   }, []);
 
-  function handleClearAllFilters(){
+  function handleClearAllFilters() {
     setStatus({
       ...status,
       subscriptionType: "Show All",
-    minInvestAmount: "All",
-    voltalityTypeSet: new Set(),
-    investmentStrategySet: new Set(),
-
-    })
+      minInvestAmount: "All",
+      voltalityTypeSet: new Set(),
+      investmentStrategySet: new Set(),
+    });
   }
 
   function handleSubscriptionType(subscriptionType) {
@@ -129,12 +132,12 @@ const MainContainter = () => {
     investmentAmountOptions,
     volatilityOptions,
     investmentStrategyListAsMap,
-    handleClearAllFilters
+    handleClearAllFilters,
   };
 
   const navBarProps = {
     status,
-    sortByTimePeriodOptions:Object.keys(sortByTimePeriodOptions),
+    sortByTimePeriodOptions: Object.keys(sortByTimePeriodOptions),
     sortByOptions,
     handleSortByFilter,
     handleOrderBy,
@@ -152,7 +155,11 @@ const MainContainter = () => {
           <SideBar {...sideBarProps} />
         </aside>
 
-        <div className={`allCards ${filteredSmallCasesData.length === 0 ? 'min-w-[900px] ': null} `}>
+        <div
+          className={`allCards ${
+            filteredSmallCasesData.length === 0 ? "min-w-[900px] " : null
+          } `}
+        >
           {" "}
           {/* Minimum height for the container */}
           <ul className="max-w-[900px]">
@@ -160,7 +167,15 @@ const MainContainter = () => {
               <li className="text-center mt-10">No cards available</li>
             ) : (
               filteredSmallCasesData.map((ele) => {
-                return <Card ele={ele} key={ele._id} status={status} sortByOptions={sortByOptions} sortByTimePeriodOptions={sortByTimePeriodOptions}/>;
+                return (
+                  <Card
+                    ele={ele}
+                    key={ele._id}
+                    status={status}
+                    sortByOptions={sortByOptions}
+                    sortByTimePeriodOptions={sortByTimePeriodOptions}
+                  />
+                );
               })
             )}
           </ul>
@@ -217,7 +232,7 @@ function getFilteredSmallCasesData(status, data) {
 
   // Sorting Logic
   const sortFunctions = {
-    "Popularity": (a, b) =>
+    Popularity: (a, b) =>
       a.brokerMeta.flags.popular - b.brokerMeta.flags.popular,
     "Minimum Amount": (a, b) =>
       a.stats.minInvestAmount - b.stats.minInvestAmount,
@@ -229,8 +244,7 @@ function getFilteredSmallCasesData(status, data) {
     filteredData.sort(sortFunctions[sortByType]);
   } else {
     // Sorting by  Return Duration
-    let timePeriod= sortByTimePeriodOptions[sortByType];
-
+    let timePeriod = sortByTimePeriodOptions[sortByType];
 
     filteredData.sort((a, b) => {
       let valueA = a.stats.returns[timePeriod] * 100;

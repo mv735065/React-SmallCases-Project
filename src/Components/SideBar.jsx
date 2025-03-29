@@ -68,14 +68,17 @@ function SideBar(props) {
             return (
               <li key={ele}>
                 <button
-                  className={`py-1 px-4 border-2 rounded ${
+                  className={` flex flex-col px-2 py-1 border-2 rounded ${
                     status.voltalityTypeSet.has(ele)
-                      ? " bg-[#e9f0fc] text-[#1f7ae0] font-medium "
+                      ? "  text-[#1f7ae0] font-medium "
                       : "border-gray-200"
                   }`}
                   onClick={() => handleVoltality(ele)}
                 >
-                  {ele}
+                  <span>{ele}</span>
+                  {ele.split(" ")[0].trim()=='Low' && <img src="src/assets/1.png"/>}
+          {ele.split(" ")[0].trim()=='Medium' && <img src="src/assets/2.png" className="w-fit"/>}
+          {ele.split(" ")[0].trim()=='High' && <img src="src/assets/3.png"/>}
                 </button>
               </li>
             );
